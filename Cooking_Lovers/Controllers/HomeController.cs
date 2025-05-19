@@ -19,7 +19,6 @@ namespace Cooking_Lovers.Controllers
         {
             return View();
         }
-        [HttpPost]
         public IActionResult CreateRecipe()
         {
             return View();
