@@ -1,7 +1,11 @@
 using System.Diagnostics;
+using Cooking_Lovers.Data;
 using Cooking_Lovers.Models;
+using Humanizer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cooking_Lovers.Controllers
 {
@@ -9,7 +13,6 @@ namespace Cooking_Lovers.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
@@ -19,10 +22,7 @@ namespace Cooking_Lovers.Controllers
         {
             return View();
         }
-        public IActionResult CreateRecipe()
-        {
-            return View();
-        }
+        
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
@@ -31,3 +31,4 @@ namespace Cooking_Lovers.Controllers
         }
     }
 }
+

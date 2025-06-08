@@ -8,9 +8,9 @@ namespace Cooking_Lovers.Models
     {
         public int Id { get; set; }
         [Required]
-        public string Title { get; set; }
+        public required string Title { get; set; }
         [Required]
-        public string Description { get; set; }
+        public required string Description { get; set; }
         [Required]
         public TimeSpan PreparationTime { get; set; }
         public DateTime PostedDate { get; set; } = DateTime.UtcNow;
@@ -18,12 +18,12 @@ namespace Cooking_Lovers.Models
         public bool IsApproved { get; set; } = false;
 
         [Required]
-        public string UserId { get; set; }
+        public required string UserId { get; set; }
 
         [ForeignKey(nameof(UserId))]
-        public IdentityUser User { get; set; }
+        public required IdentityUser User { get; set; }
 
 
-        public ICollection<RecipeIngredient> RecipeIngredients { get; set; }
+        public required ICollection<RecipeIngredient> RecipeIngredients { get; set; }
     }
 }
