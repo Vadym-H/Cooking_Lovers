@@ -129,5 +129,44 @@ namespace Cooking_Lovers.Controllers
 
             return Ok(new { message = "Recipe deleted successfully." });
         }
+
+
+        [Authorize]
+        [HttpPatch("like-recipe/{id}")]
+        public async Task<IActionResult> LikeRecipe(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+            var recipe = await _db.Recipes
+                .Include(r => r.RecipeIngredients)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+                return NotFound(new { message = "Recipe not found." });
+
+            // todo like logic
+            
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpPatch("save-recipe/{id}")]
+        public async Task<IActionResult> SaveRecipe(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+            var recipe = await _db.Recipes
+                .Include(r => r.RecipeIngredients)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+                return NotFound(new { message = "Recipe not found." });
+
+            // todo save logic
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
     }
 }
