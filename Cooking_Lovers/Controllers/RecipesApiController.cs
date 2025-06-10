@@ -129,5 +129,64 @@ namespace Cooking_Lovers.Controllers
 
             return Ok(new { message = "Recipe deleted successfully." });
         }
+        [Authorize(Roles = "Admin")]
+        [HttpPut("admin-update/{id}")]
+        public async Task<IActionResult> AdminUpdateRecipe(int id, [FromBody] RecipeDto model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var recipe = await _db.Recipes
+                .Include(r => r.RecipeIngredients)
+                .ThenInclude(ri => ri.Ingredient)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+                return NotFound();
+
+            recipe.Title = model.Title;
+            recipe.Description = model.Description;
+            recipe.PreparationTime = model.PreparationTime;
+            recipe.UpdatedDate = DateTime.UtcNow;
+
+            _db.RecipeIngredients.RemoveRange(recipe.RecipeIngredients);
+            recipe.RecipeIngredients.Clear();
+
+            await Helper.AddIngredientsToRecipe(model, recipe, _db);
+            await _db.SaveChangesAsync();
+
+            var updatedModel = Helper.MapRecipeToViewModel(recipe);
+            return Ok(updatedModel);
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("admin-delete/{id}")]
+        public async Task<IActionResult> AdminDeleteRecipe(int id)
+        {
+            var recipe = await _db.Recipes
+                .Include(r => r.RecipeIngredients)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+                return NotFound(new { message = "Recipe not found." });
+
+            _db.RecipeIngredients.RemoveRange(recipe.RecipeIngredients);
+            _db.Recipes.Remove(recipe);
+            await _db.SaveChangesAsync();
+
+            return Ok(new { message = "Recipe deleted successfully." });
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpPost("ban/{userId}")]
+        public async Task<IActionResult> BanUser(string userId)
+        {
+            return Ok();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("unban/{userId}")]
+        public async Task<IActionResult> UnbanUser(string userId)
+        {
+                return Ok();
+        }
     }
 }
