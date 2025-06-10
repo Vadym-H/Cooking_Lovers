@@ -49,17 +49,32 @@ namespace Cooking_Lovers.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllRecipes()
+        public async Task<IActionResult> GetAllRecipes([FromQuery] string? search, [FromQuery] string? sort)
         {
-            var allRecipes = await _db.Recipes
+            var query = _db.Recipes
                 .AsNoTracking()
                 .Include(r => r.RecipeIngredients)
                 .ThenInclude(ri => ri.Ingredient)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(r => r.Title.ToLower().Contains(search.ToLower()));
+            }
+
+            query = sort?.ToLower() switch
+            {
+                "asc" => query.OrderBy(r => r.PreparationTime),
+                "desc" => query.OrderByDescending(r => r.PreparationTime),
+                _ => query
+            };
+
+            var allRecipes = await query.ToListAsync();
 
             var viewModels = Helper.MapRecipesToViewModels(allRecipes);
             return Ok(viewModels);
         }
+
 
         [Authorize]
         [HttpGet("get-my-recipes")]
@@ -129,6 +144,30 @@ namespace Cooking_Lovers.Controllers
 
             return Ok(new { message = "Recipe deleted successfully." });
         }
+
+
+        [Authorize]
+        [HttpPatch("like-recipe/{id}")]
+        public async Task<IActionResult> LikeRecipe(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+            var recipe = await _db.Recipes
+                .Include(r => r.RecipeIngredients)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+                return NotFound(new { message = "Recipe not found." });
+
+            // todo implement like logic
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+
+        //    var userId = _userManager.GetUserId(User);
+
         [Authorize(Roles = "Admin")]
         [HttpPut("admin-update/{id}")]
         public async Task<IActionResult> AdminUpdateRecipe(int id, [FromBody] RecipeDto model)
@@ -158,23 +197,25 @@ namespace Cooking_Lovers.Controllers
             var updatedModel = Helper.MapRecipeToViewModel(recipe);
             return Ok(updatedModel);
         }
-        [Authorize(Roles = "Admin")]
-        [HttpDelete("admin-delete/{id}")]
-        public async Task<IActionResult> AdminDeleteRecipe(int id)
+
+        [Authorize]
+        [HttpPatch("save-recipe/{id}")]
+        public async Task<IActionResult> SaveRecipe(int id)
         {
-            var recipe = await _db.Recipes
-                .Include(r => r.RecipeIngredients)
-                .FirstOrDefaultAsync(r => r.Id == id);
+                var recipe = await _db.Recipes
+                    .Include(r => r.RecipeIngredients)
+                    .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (recipe == null)
-                return NotFound(new { message = "Recipe not found." });
+                if (recipe == null)
+                    return NotFound(new { message = "Recipe not found." });
 
-            _db.RecipeIngredients.RemoveRange(recipe.RecipeIngredients);
-            _db.Recipes.Remove(recipe);
-            await _db.SaveChangesAsync();
+                // todo implement save logic
 
-            return Ok(new { message = "Recipe deleted successfully." });
+                await _db.SaveChangesAsync();
+
+                return Ok();
         }
+           
         [Authorize(Roles = "Admin")]
         [HttpPost("ban/{userId}")]
         public async Task<IActionResult> BanUser(string userId)
