@@ -49,17 +49,32 @@ namespace Cooking_Lovers.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllRecipes()
+        public async Task<IActionResult> GetAllRecipes([FromQuery] string? search, [FromQuery] string? sort)
         {
-            var allRecipes = await _db.Recipes
+            var query = _db.Recipes
                 .AsNoTracking()
                 .Include(r => r.RecipeIngredients)
                 .ThenInclude(ri => ri.Ingredient)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(r => r.Title.ToLower().Contains(search.ToLower()));
+            }
+
+            query = sort?.ToLower() switch
+            {
+                "asc" => query.OrderBy(r => r.PreparationTime),
+                "desc" => query.OrderByDescending(r => r.PreparationTime),
+                _ => query
+            };
+
+            var allRecipes = await query.ToListAsync();
 
             var viewModels = Helper.MapRecipesToViewModels(allRecipes);
             return Ok(viewModels);
         }
+
 
         [Authorize]
         [HttpGet("get-my-recipes")]
@@ -143,8 +158,8 @@ namespace Cooking_Lovers.Controllers
             if (recipe == null)
                 return NotFound(new { message = "Recipe not found." });
 
-            // todo like logic
-            
+            // todo implement like logic
+
             await _db.SaveChangesAsync();
 
             return Ok();
@@ -162,7 +177,7 @@ namespace Cooking_Lovers.Controllers
             if (recipe == null)
                 return NotFound(new { message = "Recipe not found." });
 
-            // todo save logic
+            // todo implement save logic
 
             await _db.SaveChangesAsync();
 
