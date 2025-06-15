@@ -1,3 +1,47 @@
-﻿<h1>Create Recipe</h1>
+﻿@model RecipeDto
 @{
+    ViewData["Title"] = "Create Recipe";
+}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header text-white bg-primary">
+                    <h2>Create Recipe</h2>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateRecipe" method="post">
+                        <div class="form-group mb-3">
+                            <label asp-for="Title" class="form-label mt-4">Name</label>
+                            <input asp-for="Title" class="form-control" placeholder="Enter the name of Recipe">
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="form-label mt-4">Description</label>
+                            <textarea asp-for="Description" rows="3" class="form-control" placeholder="Enter the description of Recipe"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="Ingredients" class="form-label mt-4">Ingredients</label>
+                            <textarea asp-for="Ingredients" rows="5" class="form-control" placeholder="List of ingredients" name="Ingredients"></textarea>
+                            <span asp-validation-for="Ingredients" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="PreparationTime" class="form-label mt-4">Preparation Time</label>
+                            <input asp-for="PreparationTime" class="form-control" type="time">
+                            <span asp-validation-for="PreparationTime" class="text-danger"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mx-3">
+                            <button class="btn btn-primary btn-lg" type="submit">Create</button>
+                            <a class="btn btn-secondary btn-lg" asp-controller="Home" asp-action="Index">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }
