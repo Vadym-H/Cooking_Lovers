@@ -151,22 +151,37 @@ namespace Cooking_Lovers.Controllers
         public async Task<IActionResult> LikeRecipe(int id)
         {
             var userId = _userManager.GetUserId(User);
+
             var recipe = await _db.Recipes
-                .Include(r => r.RecipeIngredients)
+                .Include(r => r.UserActions)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (recipe == null)
                 return NotFound(new { message = "Recipe not found." });
 
-            // todo implement like logic
+            var userAction = recipe.UserActions.FirstOrDefault(ua => ua.UserId == userId);
+
+            if (userAction == null)
+            {
+                userAction = new UserActions
+                {
+                    UserId = userId,
+                    RecipeId = id,
+                    HasLiked = true
+                };
+
+                _db.UserActions.Add(userAction);
+            }
+            else
+            {
+                userAction.HasLiked = !userAction.HasLiked;
+                _db.UserActions.Update(userAction);
+            }
 
             await _db.SaveChangesAsync();
 
-            return Ok();
+            return Ok(new { liked = userAction.HasLiked });
         }
-
-
-        //    var userId = _userManager.GetUserId(User);
 
         [Authorize(Roles = "Admin")]
         [HttpPut("admin-update/{id}")]
@@ -202,20 +217,39 @@ namespace Cooking_Lovers.Controllers
         [HttpPatch("save-recipe/{id}")]
         public async Task<IActionResult> SaveRecipe(int id)
         {
-                var recipe = await _db.Recipes
-                    .Include(r => r.RecipeIngredients)
-                    .FirstOrDefaultAsync(r => r.Id == id);
+            var userId = _userManager.GetUserId(User);
 
-                if (recipe == null)
-                    return NotFound(new { message = "Recipe not found." });
+            var recipe = await _db.Recipes
+                .Include(r => r.UserActions)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
-                // todo implement save logic
+            if (recipe == null)
+                return NotFound(new { message = "Recipe not found." });
 
-                await _db.SaveChangesAsync();
+            var userAction = recipe.UserActions.FirstOrDefault(ua => ua.UserId == userId);
 
-                return Ok();
+            if (userAction == null)
+            {
+                userAction = new UserActions
+                {
+                    UserId = userId,
+                    RecipeId = id,
+                    HasSaved = true
+                };
+
+                _db.UserActions.Add(userAction);
+            }
+            else
+            {
+                userAction.HasSaved = !userAction.HasSaved;
+                _db.UserActions.Update(userAction);
+            }
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new { saved = userAction.HasSaved });
         }
-           
+
         [Authorize(Roles = "Admin")]
         [HttpPost("ban/{userId}")]
         public async Task<IActionResult> BanUser(string userId)
@@ -227,7 +261,7 @@ namespace Cooking_Lovers.Controllers
         [HttpPost("unban/{userId}")]
         public async Task<IActionResult> UnbanUser(string userId)
         {
-                return Ok();
+            return Ok();
         }
     }
 }
