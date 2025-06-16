@@ -10,21 +10,27 @@
             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Filter</a>
             <div class="dropdown-menu">
                 <h6 class="dropdown-header">Sort by preparation time</h6>
-                <div class="btn-group flex-column mx-md-3">
-                    <div class="my-1">
-                        <input type="checkbox" class="" name="radio-preparationTime-filter" id="btnradio1">
-                        <label class="" for="btnradio1">0h - 1h</label>
+                <form asp-controller="Home" asp-action="Index" asp-route-sort="filter-input" method="get">
+                    <div class="btn-group flex-column mx-md-3">
+                        <div class="my-1">
+                            <input type="radio" class="" name="radio-preparationTime-filter" id="btnradio1">
+                            <label class="" for="btnradio1">0h - 1h</label>
+                        </div>
+                        <div class="my-1">
+                            <input type="radio" class="" name="radio-preparationTime-filter" id="btnradio2">
+                            <label class="" for="btnradio2">1h - 2h</label>
+                        </div>
+                        <div class="my-1">
+                            <input type="radio" class="" name="radio-preparationTime-filter" id="btnradio3">
+                            <label class="" for="btnradio3">2h+</label>
+                        </div>
                     </div>
-                    <div class="my-1">
-                        <input type="checkbox" class="" name="radio-preparationTime-filter" id="btnradio2">
-                        <label class="" for="btnradio2">1h - 2h</label>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-center mx-md-3">
+                        <button class="btn btn-sm btn-info" type="submit">Filter out</button>
                     </div>
-                    <div class="my-1">
-                        <input type="checkbox" class="" name="radio-preparationTime-filter" id="btnradio3">
-                        <label class="" for="btnradio3">2h+</label>
-                    </div>
-                </div>
-                <div class="dropdown-divider"></div>
+                </form>
+                @* <div class="dropdown-divider"></div>
                 <h6 class="dropdown-header">Sort by difficulty</h6>
                 <div class="btn-group flex-column mx-md-3">
                     <div class="my-1">
@@ -39,7 +45,7 @@
                         <input type="checkbox" class="" name="radio-difficulty-filter" id="btnradio6">
                         <label class="" for="btnradio6">Hard</label>
                     </div>
-                </div>
+                </div> *@
             </div>
         </li>
     </ul>

@@ -142,162 +142,29 @@
 
         // On form submit, collect ingredients and preparation time
         $('form[asp-action="CreateRecipe"]').submit(function (e) {
-            const ingredients = [];
-            $('#ingredientsTableBody tr').each(function () {
+            const ingredientInputs = [];
+            $('#ingredientsTableBody tr').each(function (index) {
                 const name = $(this).find('td:eq(0)').text();
                 const quantity = $(this).find('td:eq(1)').text();
                 const unit = $(this).find('td:eq(2)').text();
-                ingredients.push({ name, quantity, unit });
+
+                ingredientInputs.push(
+                    `<input type="hidden" name="Ingredients[${index}].Name" value="${name}" />`,
+                    `<input type="hidden" name="Ingredients[${index}].Quantity" value="${quantity}" />`,
+                    `<input type="hidden" name="Ingredients[${index}].Unit" value="${unit}" />`
+                );
             });
-            $('#inputIngredients').val(ingredients);
+            $('#inputIngredients').parent().append(ingredientInputs.join(''));
 
             // Convert preparation time to string
-            const prepTime = $('#PreparationTime').val();
-            $('input[name="PreparationTimeString"]').remove();
-            $(this).append(
-                $('<input>')
-                    .attr('type', 'hidden')
-                    .attr('name', 'PreparationTimeString')
-                    .val(prepTime ? prepTime.toString() : '')
-            );
-        });
-    </script>
-    <partial name="_ValidationScriptsPartial" />
-
-        <script>
-            let editingRow = null;
-
-            $(document).ready(function () {
-                // Add or Save ingredient functionality
-                $('#addIngredient').click(function (e) {
-                    e.preventDefault();
-                    const ingredientName = $('#nameId').val();
-                    const ingredientAmount = $('#amountId').val();
-                    const ingredientUnit = $('#unitId').val();
-
-                    if (ingredientName && ingredientAmount && ingredientUnit) {
-                        if (editingRow) {
-                            // Save changes to the editing row
-                            $(editingRow).find('td:eq(0)').text(ingredientName);
-                            $(editingRow).find('td:eq(1)').text(ingredientAmount);
-                            $(editingRow).find('td:eq(2)').text(ingredientUnit);
-                            editingRow = null;
-                            $('#addIngredient').text('Add');
-                        } else {
-                            // Add new row
-                            const newRow = `<tr>
-                                <td>${ingredientName}</td>
-                                <td>${ingredientAmount}</td>
-                                <td>${ingredientUnit}</td>
-                                <td class="d-flex">
-                                    <button class="btn btn-sm btn-secondary me-3 editIngredient" type="button">Edit</button>
-                                <button class="btn btn-sm btn-danger ms-3 removeIngredient" type="button">Remove</button>
-                                </td>
-                            </tr>`;
-                            $(this).closest('.form-group').find('tbody').append(newRow);
-                        }
-                        // Clear input fields
-                        $('#nameId').val('');
-                        $('#amountId').val('');
-                        $('#unitId').val('');
-                    } else {
-                        alert("Please fill in all fields.");
-                    }
-                });
-
-                // Edit ingredient functionality (delegated)
-                $(document).on('click', '.editIngredient', function () {
-                    const row = $(this).closest('tr');
-                    const name = row.find('td:eq(0)').text();
-                    const amount = row.find('td:eq(1)').text();
-                    const unit = row.find('td:eq(2)').text();
-
-                    $('#nameId').val(name);
-                    $('#amountId').val(amount);
-                    $('#unitId').val(unit);
-
-                    editingRow = row;
-                    $('#addIngredient').text('Save');
-                });
-
-                // Remove ingredient functionality (delegated)
-                $(document).on('click', '.removeIngredient', function () {
-                    const row = $(this).closest('tr');
-                    // If currently editing this row, reset editing state
-                    if (editingRow && editingRow.is(row)) {
-                        editingRow = null;
-                        $('#addIngredient').text('Add');
-                        $('#nameId').val('');
-                        $('#amountId').val('');
-                        $('#unitId').val('');
-                    }
-                    row.remove();
-                });
-            });
-        </script>
-    <script>
-        let editingRow = null;
-
-        // Helper to collect ingredients as list of string objects
-        function getIngredientsList() {
-            const ingredients = [];
-            $('tbody tr').each(function () {
-                const name = $(this).find('td:eq(0)').text();
-                const amount = $(this).find('td:eq(1)').text();
-                const unit = $(this).find('td:eq(2)').text();
-                ingredients.push(`${name}|${amount}|${unit}`);
-            });
-            return ingredients;
-        }
-
-        // On submit, collect ingredients and preparation time as string
-        $(document).ready(function () {
-            // ...existing add/edit/remove logic...
-
-            $('form[asp-action="CreateRecipe"]').submit(function (e) {
-                // Collect ingredients into a list of string
-                const ingredientsList = getIngredientsList();
-
-                // Set the value of the hidden input field with id 'inputIngredients'
-                $('#inputIngredients').val(ingredientsList.join(';'));
-
-                // Remove any previous hidden fields
-                $('input[name="IngredientsList"]').remove();
-
-                // Add as hidden fields (one per ingredient string)
-                for (let i = 0; i < ingredientsList.length; i++) {
-                    $(this).append(
-                        $('<input>')
-                            .attr('type', 'hidden')
-                            .attr('name', 'IngredientsList')
-                            .val(ingredientsList[i])
-                    );
-                }
-
-                // Convert preparationTime to string and set as hidden field
-                const prepTime = $('#PreparationTime').val();
-                $('input[name="PreparationTimeString"]').remove();
-                $(this).append(
-                    $('<input>')
-                        .attr('type', 'hidden')
-                        .attr('name', 'PreparationTimeString')
-                        .val(prepTime ? prepTime.toString() : '')
-                );
-                // Allow form to submit
-            });
-        });
-
-                // Convert preparationTime to string and set as hidden field
-                const prepTime = $('#PreparationTime').val();
-                $('input[name="PreparationTimeString"]').remove();
-                $(this).append(
-                    $('<input>')
-                        .attr('type', 'hidden')
-                        .attr('name', 'PreparationTimeString')
-                        .val(prepTime ? prepTime.toString() : '')
-                );
-                // Allow form to submit
-            });
+            // const prepTime = $('#PreparationTime').val();
+            // $('input[name="PreparationTimeString"]').remove();
+            // $(this).append(
+            //     $('<input>')
+            //         .attr('type', 'hidden')
+            //         .attr('name', 'PreparationTimeString')
+            //         .val(prepTime ? prepTime.toString() : '')
+            // );
         });
     </script>
 <partial name="_ValidationScriptsPartial" />

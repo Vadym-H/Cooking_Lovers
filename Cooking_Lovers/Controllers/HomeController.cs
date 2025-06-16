@@ -58,7 +58,7 @@ namespace Cooking_Lovers.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateRecipe([FromBody] RecipeDto model)
+        public async Task<IActionResult> CreateRecipe(RecipeDto model)
         {
             if (!ModelState.IsValid)
                 return View(model);
@@ -80,7 +80,7 @@ namespace Cooking_Lovers.Controllers
             _db.Recipes.Add(recipe);
             await _db.SaveChangesAsync();
 
-            return View(RedirectToAction("Index"));
+            return RedirectToAction("Index");
         }
 
         [Authorize]
