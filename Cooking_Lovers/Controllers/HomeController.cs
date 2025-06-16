@@ -14,19 +14,16 @@ namespace Cooking_Lovers.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _db;
-        public HomeController(ILogger<HomeController> logger, UserManager<IdentityUser> userManager, ApplicationDbContext db)
+        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager, ApplicationDbContext db)
         {
             _logger = logger;
             _userManager = userManager;
             _db = db;
         }
+
         [AllowAnonymous]
-        public IActionResult Index()
-        {
-            return View();
-        }
         [HttpGet]
         public async Task<IActionResult> Index([FromQuery] string? search, [FromQuery] string? sort)
         {
@@ -51,7 +48,7 @@ namespace Cooking_Lovers.Controllers
             var allRecipes = await query.ToListAsync();
 
             var viewModels = Helper.MapRecipesToViewModels(allRecipes);
-            return View(viewModels);
+            return View(viewModels); 
         }
 
         public IActionResult CreateRecipe()
@@ -65,7 +62,6 @@ namespace Cooking_Lovers.Controllers
         {
             if (!ModelState.IsValid)
                 return View(model);
-            //return BadRequest(ModelState);
 
             var userId = _userManager.GetUserId(User);
             var user = await _userManager.GetUserAsync(User);
@@ -85,17 +81,81 @@ namespace Cooking_Lovers.Controllers
             await _db.SaveChangesAsync();
 
             return View(RedirectToAction("Index"));
-            //return Ok(new { recipe.Id, message = "Recipe created successfully." });
         }
 
-        public IActionResult GetMyRecipes()
+        [Authorize]
+        [HttpGet("get-my-recipes")]
+        public async Task<IActionResult> GetMyRecipes()
         {
-            return View();
+
+            var userId = _userManager.GetUserId(User);
+            var myRecipes = await _db.Recipes
+                .AsNoTracking()
+                .Include(r => r.RecipeIngredients)
+                .ThenInclude(ri => ri.Ingredient)
+                .Where(r => r.UserId == userId)
+                .ToListAsync();
+
+            var viewModels = Helper.MapRecipesToViewModels(myRecipes);
+            return View(viewModels);
         }
 
-        public IActionResult SavedRecipes()
+        [Authorize]
+        [HttpPatch("save-recipe/{id}")]
+        public async Task<IActionResult> SaveRecipes(int id)
         {
-            return View();
+            var userId = _userManager.GetUserId(User);
+
+            var recipe = await _db.Recipes
+                .Include(r => r.UserActions)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+                return NotFound(new { message = "Recipe not found." });
+
+            var userAction = recipe.UserActions.FirstOrDefault(ua => ua.UserId == userId);
+
+            if (userAction == null)
+            {
+                userAction = new UserActions
+                {
+                    UserId = userId,
+                    RecipeId = id,
+                    HasSaved = true
+                };
+
+                _db.UserActions.Add(userAction);
+            }
+            else
+            {
+                userAction.HasSaved = !userAction.HasSaved;
+                _db.UserActions.Update(userAction);
+            }
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new { saved = userAction.HasSaved });
+        }
+
+        [Authorize]
+        [HttpGet("get-saved-recipes")]
+        public async Task<IActionResult> GetSavedRecipes()
+        {
+            var userId = _userManager.GetUserId(User);
+            var savedRecipeIds = await _db.UserActions
+                .Where(ua => ua.UserId == userId && ua.HasSaved)
+                .Select(ua => ua.RecipeId)
+                .ToListAsync();
+
+            var recipes = await _db.Recipes
+                .AsNoTracking()
+                .Include(r => r.RecipeIngredients)
+                .ThenInclude(ri => ri.Ingredient)
+                .Where(r => savedRecipeIds.Contains(r.Id))
+                .ToListAsync();
+
+            var viewModels = Helper.MapRecipesToViewModels(recipes);
+            return View(viewModels);
         }
 
         public IActionResult LikedRecipes()

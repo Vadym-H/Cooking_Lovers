@@ -11,9 +11,8 @@
                 <h6 class="dropdown-header text-black">Settings:</h6>
                 <a class="dropdown-item nav-link text-black" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Manage Account</a>
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item nav-link text-black" href="#">Your recipes</a>
-                <a class="dropdown-item nav-link text-black" href="#">Saved recipes</a>
-                <a class="dropdown-item nav-link text-black" href="#">Liked recipes</a>
+                <a asp-controller="Home" asp-action="GetMyRecipes" class="dropdown-item nav-link text-black">Your recipes</a>
+                <a asp-controller="Home" asp-action="GetSavedRecipes" class="dropdown-item nav-link text-black">Saved recipes</a>
             </div>
     </li>
     <li class="nav-item">

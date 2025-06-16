@@ -27,10 +27,10 @@
                             <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="CreateRecipe">Create Recipe</a>
                         </li>
                         <li class="nav-item ms-auto">
-                            <form class="form-control bg-primary border-primary">
+                            <form asp-controller="Home" asp-action="Index" asp-route-search="search-input" method="get" class="form-control bg-primary border-primary">
                                 @* To do "asp-action & method" *@
                                 <div class="d-flex">
-                                    <input class="form-control me-sm-2" placeholder="Type for Search" />
+                                    <input name="search-input" class="form-control me-sm-2" placeholder="Type for Search">
                                     <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
                                 </div>
                             </form>
