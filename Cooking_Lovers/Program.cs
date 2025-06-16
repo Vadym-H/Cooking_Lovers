@@ -35,7 +35,7 @@ namespace Cooking_Lovers
                 app.UseSwaggerUI(options =>
                 {
                     options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-                    options.RoutePrefix = string.Empty; // Makes Swagger the default page
+                    options.RoutePrefix = "swagger";
                 });
             }
             else
