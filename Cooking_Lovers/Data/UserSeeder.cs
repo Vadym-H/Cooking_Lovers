@@ -18,6 +18,7 @@ namespace Cooking_Lovers.Data
                 await CreateUserWithRole(userManager, "admin@gmail.com", "Admin123!", Roles.Admin);
                 await CreateUserWithRole(userManager, "user1@gmail.com", "User123!", Roles.Admin);
                 await CreateUserWithRole(userManager, "user2@gmail.com", "User123!", Roles.Admin);
+                await CreateUserWithRole(userManager, "user3@gmail.com", "User123!", Roles.User);
             }
 
             private static async Task CreateUserWithRole(UserManager<ApplicationUser> userManager, string email, string password, string role)

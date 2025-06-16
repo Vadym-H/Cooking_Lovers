@@ -53,14 +53,15 @@ namespace Cooking_Lovers.Controllers
         }
 
         [Authorize]
+        [HttpGet("get-create-recipe")]
         public IActionResult CreateRecipe()
         {
             return View();
         }
 
         [Authorize]
-        [HttpPost]
-        public async Task<IActionResult> CreateRecipe(RecipeDto model)
+        [HttpPost("create-recipe")]
+        public async Task<IActionResult> PostCreateRecipe(RecipeDto model)
         {
             if (!ModelState.IsValid)
                 return View(model);
@@ -136,7 +137,7 @@ namespace Cooking_Lovers.Controllers
 
             await _db.SaveChangesAsync();
 
-            return Ok(new { saved = userAction.HasSaved });
+            return RedirectToAction("Index");
         }
 
         [Authorize]

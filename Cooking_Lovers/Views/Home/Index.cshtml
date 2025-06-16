@@ -10,18 +10,18 @@
             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Filter</a>
             <div class="dropdown-menu">
                 <h6 class="dropdown-header">Sort by preparation time</h6>
-                <form asp-controller="Home" asp-action="Index" asp-route-sort="filter-input" method="get">
+                <form asp-controller="Home" asp-action="Index" method="get">
                     <div class="btn-group flex-column mx-md-3">
                         <div class="my-1">
-                            <input type="radio" class="" name="radio-preparationTime-filter" id="btnradio1">
+                            <input type="radio" class="" name="sort" id="btnradio1" value="asc">
                             <label class="" for="btnradio1">0h - 1h</label>
                         </div>
                         <div class="my-1">
-                            <input type="radio" class="" name="radio-preparationTime-filter" id="btnradio2">
+                            <input type="radio" class="" name="sort" id="btnradio2" value="desc">
                             <label class="" for="btnradio2">1h - 2h</label>
                         </div>
                         <div class="my-1">
-                            <input type="radio" class="" name="radio-preparationTime-filter" id="btnradio3">
+                            <input type="radio" class="" name="sort" id="btnradio3" value="">
                             <label class="" for="btnradio3">2h+</label>
                         </div>
                     </div>
@@ -94,19 +94,21 @@
                     <p6>@recipe.PreparationTime</p6>
                 </div>
             </div>
-            <div class="card-footer d-flex justify-content-end">
-                <a asp-controller="Home" asp-action="SaveRecipes" class="card-link text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor" class="bi bi-bookmark-plus" viewBox="0 0 16 16">
-                        <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z" />
-                        <path d="M8 4a.5.5 0 0 1 .5.5V6H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V7H6a.5.5 0 0 1 0-1h1.5V4.5A.5.5 0 0 1 8 4" />
-                    </svg>
-                </a>
-                <a class="card-link text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15" />
-                    </svg>
-                </a>
-            </div>
+            <form asp-controller="Home" asp-action="SaveRecipes" asp-route-id="@recipe.RecipeId" method="post">
+                <div class="card-footer d-flex justify-content-end">
+                    <button class="card-link text-white" type="submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor" class="bi bi-bookmark-plus" viewBox="0 0 16 16">
+                            <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z" />
+                            <path d="M8 4a.5.5 0 0 1 .5.5V6H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V7H6a.5.5 0 0 1 0-1h1.5V4.5A.5.5 0 0 1 8 4" />
+                        </svg>
+                    </button>
+                    <a class="card-link text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                            <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15" />
+                        </svg>
+                    </a>
+                </div>
+            </form>
         </div>
     }
 </div>

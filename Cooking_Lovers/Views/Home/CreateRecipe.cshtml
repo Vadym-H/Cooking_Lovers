@@ -10,7 +10,7 @@
                     <h2>Create Recipe</h2>
                 </div>
                 <div class="card-body">
-                    <form asp-action="CreateRecipe" method="post">
+                    <form asp-action="PostCreateRecipe" method="post">
                         <div class="form-group mb-3">
                             <label asp-for="Title" class="form-label mt-4">Name</label>
                             <input asp-for="Title" class="form-control" placeholder="Enter the name of Recipe">
@@ -74,7 +74,6 @@
     <script>
         let editingRow = null;
 
-        // Add or update ingredient
         $('#addIngredient').click(function () {
             const name = $('#nameId').val().trim();
             const quantity = $('#amountId').val().trim();
@@ -86,14 +85,14 @@
             }
 
             if (editingRow) {
-                // Update existing row
+
                 $(editingRow).find('td:eq(0)').text(name);
                 $(editingRow).find('td:eq(1)').text(quantity);
                 $(editingRow).find('td:eq(2)').text(unit);
                 editingRow = null;
                 $('#addIngredient').text('Add');
             } else {
-                // Add new row
+
                 const row = `<tr>
                     <td>${name}</td>
                     <td>${quantity}</td>
@@ -106,13 +105,13 @@
                 $('#ingredientsTableBody').append(row);
             }
 
-            // Clear input fields
+
             $('#nameId').val('');
             $('#amountId').val('');
             $('#unitId').val('');
         });
 
-        // Edit ingredient
+
         $(document).on('click', '.editIngredient', function () {
             const row = $(this).closest('tr');
             const name = row.find('td:eq(0)').text();
@@ -127,7 +126,7 @@
             $('#addIngredient').text('Update');
         });
 
-        // Remove ingredient
+
         $(document).on('click', '.removeIngredient', function () {
             const row = $(this).closest('tr');
             if (editingRow && editingRow.is(row)) {
@@ -140,7 +139,6 @@
             row.remove();
         });
 
-        // On form submit, collect ingredients and preparation time
         $('form[asp-action="CreateRecipe"]').submit(function (e) {
             const ingredientInputs = [];
             $('#ingredientsTableBody tr').each(function (index) {
@@ -155,16 +153,6 @@
                 );
             });
             $('#inputIngredients').parent().append(ingredientInputs.join(''));
-
-            // Convert preparation time to string
-            // const prepTime = $('#PreparationTime').val();
-            // $('input[name="PreparationTimeString"]').remove();
-            // $(this).append(
-            //     $('<input>')
-            //         .attr('type', 'hidden')
-            //         .attr('name', 'PreparationTimeString')
-            //         .val(prepTime ? prepTime.toString() : '')
-            // );
         });
     </script>
 <partial name="_ValidationScriptsPartial" />
