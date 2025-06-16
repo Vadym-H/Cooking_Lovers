@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cooking_Lovers.Controllers
 {
-    [Authorize]
+    
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -22,6 +22,7 @@ namespace Cooking_Lovers.Controllers
             _userManager = userManager;
             _db = db;
         }
+
 
         [AllowAnonymous]
         [HttpGet]
@@ -51,6 +52,7 @@ namespace Cooking_Lovers.Controllers
             return View(viewModels); 
         }
 
+        [Authorize]
         public IActionResult CreateRecipe()
         {
             return View();
