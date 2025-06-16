@@ -18,10 +18,7 @@ namespace Cooking_Lovers.Models
         [Required]
         public required int RecipeId { get; set; }
 
-        [ForeignKey(nameof(UserId))]
-        public required IdentityUser User { get; set; }
-
-        [ForeignKey(nameof(RecipeId))]
-        public required Recipe Recipe { get; set; }
+        public ApplicationUser User { get; set; } = null!;
+        public Recipe Recipe { get; set; } = null!;
     }
 }

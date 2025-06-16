@@ -20,10 +20,11 @@ namespace Cooking_Lovers.Models
         [Required]
         public required string UserId { get; set; }
 
-        [ForeignKey(nameof(UserId))]
-        public required IdentityUser User { get; set; }
+        public required ApplicationUser User { get; set; }
 
 
         public required ICollection<RecipeIngredient> RecipeIngredients { get; set; }
+
+        public ICollection<UserActions> UserActions { get; set; } = new List<UserActions>();
     }
 }
