@@ -18,7 +18,7 @@ namespace Cooking_Lovers.Models
         [Required]
         public required int RecipeId { get; set; }
 
-        public IdentityUser User { get; set; } = null!;
+        public ApplicationUser User { get; set; } = null!;
         public Recipe Recipe { get; set; } = null!;
     }
 }

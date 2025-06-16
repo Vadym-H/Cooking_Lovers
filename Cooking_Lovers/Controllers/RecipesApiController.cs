@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 
 namespace Cooking_Lovers.Controllers
 {
@@ -12,10 +13,10 @@ namespace Cooking_Lovers.Controllers
     [ApiController]
     public class RecipesApiController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _db;
 
-        public RecipesApiController(UserManager<IdentityUser> userManager, ApplicationDbContext db)
+        public RecipesApiController(UserManager<ApplicationUser> userManager, ApplicationDbContext db)
         {
             _db = db;
             _userManager = userManager;
@@ -25,10 +26,14 @@ namespace Cooking_Lovers.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateRecipe([FromBody] RecipeDto model)
         {
+            var userId = _userManager.GetUserId(User);
+            if (await Helper.IsBanned(_userManager, userId))
+            {
+                return Forbid();
+            }
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var userId = _userManager.GetUserId(User);
             var user = await _userManager.GetUserAsync(User);
 
             var recipe = new Recipe
@@ -80,6 +85,7 @@ namespace Cooking_Lovers.Controllers
         [HttpGet("get-my-recipes")]
         public async Task<IActionResult> GetMyRecipes()
         {
+
             var userId = _userManager.GetUserId(User);
             var myRecipes = await _db.Recipes
                 .AsNoTracking()
@@ -96,10 +102,16 @@ namespace Cooking_Lovers.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRecipe(int id, [FromBody] RecipeDto model)
         {
+
+            var userId = _userManager.GetUserId(User);
+            if (await Helper.IsBanned(_userManager, userId))
+            {
+                return Forbid();
+            }
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var userId = _userManager.GetUserId(User);
             var recipe = await _db.Recipes
                 .Include(r => r.RecipeIngredients)
                 .ThenInclude(ri => ri.Ingredient)
@@ -128,6 +140,11 @@ namespace Cooking_Lovers.Controllers
         public async Task<IActionResult> DeleteRcipe(int id)
         {
             var userId = _userManager.GetUserId(User);
+            if (await Helper.IsBanned(_userManager, userId))
+            {
+                return Forbid();
+            }
+
             var recipe = await _db.Recipes
                 .Include(r => r.RecipeIngredients)
                 .FirstOrDefaultAsync(r => r.Id == id);
@@ -251,17 +268,32 @@ namespace Cooking_Lovers.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost("ban/{userId}")]
-        public async Task<IActionResult> BanUser(string userId)
+        [HttpPatch("ban-status-by-email")]
+        public async Task<IActionResult> ChangeUserBanStatusByEmail([FromQuery] string email, [FromQuery] bool isBanned)
         {
-            return Ok();
-        }
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest(new { message = "Email is required." });
 
-        [Authorize(Roles = "Admin")]
-        [HttpPost("unban/{userId}")]
-        public async Task<IActionResult> UnbanUser(string userId)
-        {
-            return Ok();
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
+            if (user.Id == _userManager.GetUserId(User))
+                return BadRequest(new { message = "Admin can't ban himself." });
+
+            if (user.IsBanned == isBanned)
+            {
+                return BadRequest(new { message = $"User is already {(isBanned ? "banned" : "unbanned")}." });
+            }
+
+            user.IsBanned = isBanned;
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                return StatusCode(500, new { message = "Failed to update ban status.", errors = result.Errors });
+
+            return Ok(new { message = $"User has been {(isBanned ? "banned" : "unbanned")}." });
         }
     }
 }

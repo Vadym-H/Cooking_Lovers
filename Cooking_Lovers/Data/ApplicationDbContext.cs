@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 
 namespace Cooking_Lovers.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -39,7 +39,7 @@ namespace Cooking_Lovers.Data
 
             builder.Entity<UserActions>()
             .HasOne(ua => ua.Recipe)
-            .WithMany()
+            .WithMany(r => r.UserActions)
             .HasForeignKey(ua => ua.RecipeId)
             .OnDelete(DeleteBehavior.Restrict);
 

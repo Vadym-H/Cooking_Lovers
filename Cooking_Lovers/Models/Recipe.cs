@@ -20,7 +20,7 @@ namespace Cooking_Lovers.Models
         [Required]
         public required string UserId { get; set; }
 
-        public required IdentityUser User { get; set; }
+        public required ApplicationUser User { get; set; }
 
 
         public required ICollection<RecipeIngredient> RecipeIngredients { get; set; }

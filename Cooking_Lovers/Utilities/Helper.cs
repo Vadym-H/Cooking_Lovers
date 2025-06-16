@@ -1,5 +1,6 @@
 ﻿using Cooking_Lovers.Data;
 using Cooking_Lovers.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cooking_Lovers.Utilities
@@ -55,6 +56,15 @@ namespace Cooking_Lovers.Utilities
                     Unit = ingredientVm.Unit.Trim()
                 });
             }
+        }
+
+        public static async Task<bool> IsBanned(UserManager<ApplicationUser> _userManager, string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user.IsBanned)
+                return true;
+            else 
+                return false;
         }
     }
 }
