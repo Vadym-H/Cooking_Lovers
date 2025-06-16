@@ -53,17 +53,21 @@ namespace Cooking_Lovers
             }
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapStaticAssets();
+            //app.MapStaticAssets();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
-                .WithStaticAssets();
-            app.MapRazorPages()
-               .WithStaticAssets();
+                pattern: "/",
+                defaults: new { controller = "Home", action = "Index" }
+            );
+
+            app.MapRazorPages();
+              
 
             app.Run();
         }
