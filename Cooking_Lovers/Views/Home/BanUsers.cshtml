@@ -1,0 +1,68 @@
+﻿@model IEnumerable<ApplicationUser>
+
+@{
+    ViewData["Title"] = "Ban users";
+}
+
+<h2>Admin Panel</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Is Banned</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td id="status-@user.Id">@user.IsBanned</td>
+                <td>
+                    @if (user.Id != User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                    {
+                        <button class="btn btn-sm @(user.IsBanned ? "btn-success" : "btn-danger")"
+                                onclick="toggleBan('@user.Id', '@user.Email', @user.IsBanned.ToString().ToLower())">
+                            @(user.IsBanned ? "Unban" : "Ban")
+                        </button>
+                    }
+                    else
+                    {
+                        <span>(You)</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+                function toggleBan(userId, email, isCurrentlyBanned) {
+            const newStatus = !isCurrentlyBanned;
+
+            $.ajax({
+                url: '/ban-status-by-email?email=' + encodeURIComponent(email) + '&isBanned=' + newStatus,
+                type: 'PATCH',
+                success: function (result) {
+                    // Update the status display
+                    document.getElementById("status-" + userId).innerText = newStatus;
+
+                    // Update the button
+                    const buttons = document.querySelectorAll(`button[onclick*="${email}"]`);
+                    buttons.forEach(button => {
+                        button.classList.toggle('btn-danger');
+                        button.classList.toggle('btn-success');
+                        button.textContent = newStatus ? 'Unban' : 'Ban';
+                        // Update the onclick with new status
+                        button.setAttribute('onclick', `toggleBan('${userId}', '${email}', ${newStatus})`);
+                    });
+                },
+                error: function (err) {
+                    alert("Error updating ban status: " + err.responseJSON?.message || err.responseText);
+                }
+            });
+        }
+    </script>
+}

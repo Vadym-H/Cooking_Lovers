@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Cooking_Lovers.Data;
 using Cooking_Lovers.Models;
 using Cooking_Lovers.Utilities;
@@ -48,8 +49,8 @@ namespace Cooking_Lovers.Controllers
 
             var allRecipes = await query.ToListAsync();
 
-            var viewModels = Helper.MapRecipesToViewModels(allRecipes);
-            return View(viewModels); 
+            //var viewModels = Helper.MapRecipesToViewModels(allRecipes);
+            return View(allRecipes); 
         }
 
         [Authorize]
@@ -99,12 +100,12 @@ namespace Cooking_Lovers.Controllers
                 .Where(r => r.UserId == userId)
                 .ToListAsync();
 
-            var viewModels = Helper.MapRecipesToViewModels(myRecipes);
-            return View(viewModels);
+            //var viewModels = Helper.MapRecipesToViewModels(myRecipes);
+            return View(myRecipes);
         }
 
         [Authorize]
-        [HttpPatch("save-recipe/{id}")]
+        [HttpPost("save-recipe/{id}")]
         public async Task<IActionResult> SaveRecipes(int id)
         {
             var userId = _userManager.GetUserId(User);
@@ -164,6 +165,177 @@ namespace Cooking_Lovers.Controllers
         public IActionResult LikedRecipes()
         {
             return View();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("ban-users")]
+        public async Task<IActionResult> BanUsers()
+        {
+            var users = await _userManager.Users.ToListAsync();
+            return View(users);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [IgnoreAntiforgeryToken]
+        [HttpPatch("ban-status-by-email")]
+        public async Task<IActionResult> PatchBanUser([FromQuery] string email, [FromQuery] bool isBanned)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest(new { message = "Email is required." });
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
+            if (user.Id == _userManager.GetUserId(User))
+                return BadRequest(new { message = "Admin can't ban themselves." });
+
+            if (user.IsBanned == isBanned)
+            {
+                return Ok(new { message = $"User is already {(isBanned ? "banned" : "unbanned")}." });
+            }
+
+            user.IsBanned = isBanned;
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                return StatusCode(500, new { message = "Failed to update ban status.", errors = result.Errors });
+
+            return Ok(new
+            {
+                message = $"User has been {(isBanned ? "banned" : "unbanned")} successfully.",
+                isBanned = user.IsBanned
+            });
+        }
+
+        [Authorize]
+        [HttpPost("delete-recipe")]
+        public async Task<IActionResult> DeleteRecipe(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (await Helper.IsBanned(_userManager, userId))
+            {
+                return Forbid();
+            }
+
+            var recipe = await _db.Recipes
+                .Include(r => r.RecipeIngredients)
+                .Include(r => r.UserActions)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+                return NotFound(new { message = "Recipe not found." });
+
+            if (recipe.UserId != userId)
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "You do not have permission to delete this recipe." });
+            _db.UserActions.RemoveRange(recipe.UserActions);
+            _db.RecipeIngredients.RemoveRange(recipe.RecipeIngredients);
+            _db.Recipes.Remove(recipe);
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction("GetMyRecipes");
+        }
+
+        [Authorize]
+        [HttpGet("get-update-recipe")]
+        public IActionResult UpdateRecipe(RecipeViewModel model)
+        {
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost("{id}")]
+        public async Task<IActionResult> PostUpdateRecipe(int id, RecipeDto model)
+        {
+
+            var userId = _userManager.GetUserId(User);
+            if (await Helper.IsBanned(_userManager, userId))
+            {
+                return Forbid();
+            }
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var recipe = await _db.Recipes
+                .Include(r => r.RecipeIngredients)
+                .ThenInclude(ri => ri.Ingredient)
+                .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
+
+            if (recipe == null)
+                return NotFound();
+
+            recipe.Title = model.Title;
+            recipe.Description = model.Description;
+            recipe.PreparationTime = model.PreparationTime;
+            recipe.UpdatedDate = DateTime.UtcNow;
+
+            _db.RecipeIngredients.RemoveRange(recipe.RecipeIngredients);
+            recipe.RecipeIngredients.Clear();
+
+            await Helper.AddIngredientsToRecipe(model, recipe, _db);
+            await _db.SaveChangesAsync();
+
+            var updatedModel = Helper.MapRecipeToViewModel(recipe);
+            return View(updatedModel);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("admin-delete")]
+        public async Task<IActionResult> AdminDeleteRecipe(int id)
+        {
+            var recipe = await _db.Recipes
+                .Include(r => r.RecipeIngredients)
+                .Include(r => r.UserActions)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+                return NotFound(new { message = "Recipe not found." });
+
+            _db.RecipeIngredients.RemoveRange(recipe.RecipeIngredients);
+            _db.UserActions.RemoveRange(recipe.UserActions);
+            _db.Recipes.Remove(recipe);
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+        }
+
+        [Authorize]
+        [HttpPost("like-recipe/{id}")]
+        public async Task<IActionResult> LikeRecipe(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var recipe = await _db.Recipes
+                .Include(r => r.UserActions)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+                return NotFound(new { message = "Recipe not found." });
+
+            var userAction = recipe.UserActions.FirstOrDefault(ua => ua.UserId == userId);
+
+            if (userAction == null)
+            {
+                userAction = new UserActions
+                {
+                    UserId = userId,
+                    RecipeId = id,
+                    HasLiked = true
+                };
+
+                _db.UserActions.Add(userAction);
+            }
+            else
+            {
+                userAction.HasLiked = !userAction.HasLiked;
+                _db.UserActions.Update(userAction);
+            }
+
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction("Index");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -1,0 +1,171 @@
+﻿@model RecipeViewModel
+@{
+    ViewData["Title"] = "Update Recipe";
+}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header text-white bg-primary">
+                    <h2>Update Recipe</h2>
+                </div>
+                <div class="card-body">
+                    <form asp-action="PostUpdateRecipe" method="post">
+                        <div class="form-group mb-3">
+                            <label asp-for="Title" class="form-label mt-4">Name</label>
+                            <input asp-for="Title" class="form-control" placeholder="Enter the name of Recipe">
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="form-label mt-4">Description</label>
+                            <textarea asp-for="Description" rows="3" class="form-control" placeholder="Enter the description of Recipe"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="Ingredients" class="form-label mt-4">Add ingredients</label>
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <input class="form-control" id="nameId" placeholder="Ingredient">
+                                </div>
+                                <div>
+                                    <input class="form-control" id="amountId" placeholder="Amount" type="number">
+                                </div>
+                                <div>
+                                    <input class="form-control" id="unitId" placeholder="Unit">
+                                </div>
+                                <input asp-for="Ingredients" type="hidden" id="inputIngredients">
+                            </div>
+                            <span asp-validation-for="Ingredients" class="text-danger"></span>
+                            <div class="d-flex justify-content-end my-2">
+                                <button class="btn btn-sm btn-success" id="addIngredient" style="min-width: 5rem" type="button">Add</button>
+                            </div>
+                            <div class="">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Ingredient</th>
+                                            <th>Amount</th>
+                                            <th>Unit</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ingredientsTableBody">
+                                        @foreach (var ingredient in Model.Ingredients)
+                                        {
+                                            <tr>
+                                                <td>@ingredient.Name</td>
+                                                <td>@ingredient.Quantity</td>
+                                                <td>@ingredient.Unit</td>
+                                                <td class="d-flex">
+                                                    <button class="btn btn-sm btn-secondary me-3 editIngredient" type="button">Edit</button>
+                                                    <button class="btn btn-sm btn-danger ms-3 removeIngredient" type="button">Remove</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="PreparationTime" class="form-label mt-4">Preparation Time</label>
+                            <input asp-for="PreparationTime" class="form-control" type="time" id="PreparationTime">
+                            <span asp-validation-for="PreparationTime" class="text-danger"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mx-3">
+                            <button class="btn btn-primary btn-lg" type="submit">Update</button>
+                            <a class="btn btn-secondary btn-lg" asp-controller="Home" asp-action="GetMyRecipes">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let editingRow = null;
+
+        $('#addIngredient').click(function () {
+            const name = $('#nameId').val().trim();
+            const quantity = $('#amountId').val().trim();
+            const unit = $('#unitId').val().trim();
+
+            if (!name || !quantity || !unit) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            if (editingRow) {
+
+                $(editingRow).find('td:eq(0)').text(name);
+                $(editingRow).find('td:eq(1)').text(quantity);
+                $(editingRow).find('td:eq(2)').text(unit);
+                editingRow = null;
+                $('#addIngredient').text('Add');
+            } else {
+
+                const row = `<tr>
+                    <td>${name}</td>
+                    <td>${quantity}</td>
+                    <td>${unit}</td>
+                    <td class="d-flex">
+                        <button class="btn btn-sm btn-secondary me-3 editIngredient" type="button">Edit</button>
+                        <button class="btn btn-sm btn-danger ms-3 removeIngredient" type="button">Remove</button>
+                    </td>
+                </tr>`;
+                $('#ingredientsTableBody').append(row);
+            }
+
+
+            $('#nameId').val('');
+            $('#amountId').val('');
+            $('#unitId').val('');
+        });
+
+
+        $(document).on('click', '.editIngredient', function () {
+            const row = $(this).closest('tr');
+            const name = row.find('td:eq(0)').text();
+            const quantity = row.find('td:eq(1)').text();
+            const unit = row.find('td:eq(2)').text();
+
+            $('#nameId').val(name);
+            $('#amountId').val(quantity);
+            $('#unitId').val(unit);
+
+            editingRow = row;
+            $('#addIngredient').text('Update');
+        });
+
+
+        $(document).on('click', '.removeIngredient', function () {
+            const row = $(this).closest('tr');
+            if (editingRow && editingRow.is(row)) {
+                editingRow = null;
+                $('#addIngredient').text('Add');
+                $('#nameId').val('');
+                $('#amountId').val('');
+                $('#unitId').val('');
+            }
+            row.remove();
+        });
+
+        $('form[asp-action="CreateRecipe"]').submit(function (e) {
+            const ingredientInputs = [];
+            $('#ingredientsTableBody tr').each(function (index) {
+                const name = $(this).find('td:eq(0)').text();
+                const quantity = $(this).find('td:eq(1)').text();
+                const unit = $(this).find('td:eq(2)').text();
+
+                ingredientInputs.push(
+                    `<input type="hidden" name="Ingredients[${index}].Name" value="${name}" />`,
+                    `<input type="hidden" name="Ingredients[${index}].Quantity" value="${quantity}" />`,
+                    `<input type="hidden" name="Ingredients[${index}].Unit" value="${unit}" />`
+                );
+            });
+            $('#inputIngredients').parent().append(ingredientInputs.join(''));
+        });
+    </script>
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -26,9 +26,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="CreateRecipe">Create Recipe</a>
                         </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li>
+                                <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="BanUsers">Admin Panel</a>
+                            </li>
+                        }
                         <li class="nav-item ms-auto">
                             <form asp-controller="Home" asp-action="Index" method="get" class="form-control bg-primary border-primary">
-                                @* To do "asp-action & method" *@
                                 <div class="d-flex">
                                     <input name="search" class="form-control me-sm-2" placeholder="Type for Search">
                                     <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>

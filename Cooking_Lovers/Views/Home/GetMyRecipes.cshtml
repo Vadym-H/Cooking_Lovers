@@ -1,4 +1,5 @@
-﻿@model IEnumerable<RecipeViewModel>
+﻿@using Cooking_Lovers.Utilities
+@model IEnumerable<Recipe>
 @{
     ViewData["Title"] = "My Recipes";
 }
@@ -18,12 +19,13 @@
                                 <th>Description</th>
                                 <th>Ingredients</th>
                                 <th>Preparetion time</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="">
+                        <tbody>
                             @foreach (var recipe in Model)
                             {
-                                <tr class="">
+                                <tr>
                                     <td>@recipe.Title</td>
                                     <td>
                                         <div class="accordion" id="cardAccordion$@recipe.Title$">
@@ -41,13 +43,26 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="d-flex flex-column">
-                                        @foreach (var ingredient in recipe.Ingredients)
+                                    <td class="flex-column flex-wrap col-1">
+                                        @foreach (var ingredient in recipe.RecipeIngredients)
                                         {
-                                            <span>@ingredient.Name&nbsp;@ingredient.Quantity&nbsp;@ingredient.Unit</span>
+                                            <span>@ingredient.Ingredient.Name&nbsp;@ingredient.Quantity&nbsp;@ingredient.Unit</span>
                                         }
                                     </td>
                                     <td>@recipe.PreparationTime</td>
+                                    <td>
+                                        <div class="d-flex justify-content-around">
+                                            <form asp-controller="Home" asp-action="UpdateRecipe" method="get">
+                                                @* <input name="id" value="@recipe.Id" type="hidden"> *@
+                                                <input name="model" value="@Helper.MapRecipeToViewModel(recipe)" type="hidden">
+                                                <button class="btn btn-secondary" type="submit">Edit</button>
+                                            </form>
+                                            <form asp-controller="Home" asp-action="DeleteRecipe" method="post">
+                                                <input name="id" value="@recipe.Id" type="hidden">
+                                                <button class="btn btn-danger" type="submit">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
