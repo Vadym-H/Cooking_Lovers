@@ -47,8 +47,17 @@ namespace Cooking_Lovers.Controllers
                 _ => query
             };
 
+
             var allRecipes = await query.ToListAsync();
 
+            var userId = _userManager.GetUserId(User);
+
+            var likedIds = await _db.UserActions
+                .Where(a => a.UserId == userId && a.HasLiked)
+                .Select(a => a.RecipeId)
+                .ToListAsync();
+
+            ViewBag.UserLikedRecipeIds = likedIds;
             //var viewModels = Helper.MapRecipesToViewModels(allRecipes);
             return View(allRecipes); 
         }
@@ -67,6 +76,7 @@ namespace Cooking_Lovers.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
+            // Get the current user's ID
             var userId = _userManager.GetUserId(User);
             var user = await _userManager.GetUserAsync(User);
 
